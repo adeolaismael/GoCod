@@ -1,0 +1,60 @@
+# This set of tasks is for installing and running Docker. 
+# The user neo4jadmin is added to the docker group and has permission to run docker without sudo.
+- hosts: neo4j_cluster  # Change this to your Neo4j instance's host group
+  become: true
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg-agent
+        - software-properties-common
+
+    - name: Get the GPG Key
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: Install Docker
+      apt:
+        name: "{{ item }}"
+        state: latest
+        update_cache: yes
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+
+    - name: Create "docker" group
+      group:
+        name: "docker"
+        state: present
+
+    - name: Add remote user to "docker" group
+      user:
+        name: "neo4jadmin"  # Change this to your Neo4j instance's admin user
+        groups: 
+          - "docker"
+        append: yes
+
+    - name: Start the Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart Docker
+      service: 
+        name: docker 
+        state: restarted

@@ -1,0 +1,22 @@
+runtime: nodejs
+env: flex
+ 
+handlers:
+- url: /front-end/.*
+  static_files: build/index.html
+  upload: build/index.html
+ 
+- url: /front-end/
+  static_dir: build
+ 
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 5
+ 
+resources:
+  cpu: 1
+  memory_gb: 1
+  disk_size_gb: 10
+ 
+env_variables:
+  NODE_ENV: 'production'
